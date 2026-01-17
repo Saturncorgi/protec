@@ -1,8 +1,6 @@
 mod terminos;
-mod window;
 
 use crate::terminos::{disable_echo, enable_echo};
-use crate::window::window_main;
 use clearscreen::clear;
 use io_redirect::Redirectable;
 use regex::Regex;
@@ -12,7 +10,6 @@ use std::io::{stderr, BufReader, ErrorKind, Read};
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{exit, ChildStdout, Command, Stdio};
-use std::sync::mpsc::{channel, Sender};
 use std::thread;
 use std::thread::spawn;
 use viuer::{print_from_file, Config};
@@ -29,60 +26,54 @@ fn main() {
         exit(2);
     }
 
-    let (tx,rx)=channel::<String>();
+    clear().expect("TODO: panic message");
+    for i in 1..10 {
+        println!("You have {} seconds left", 10 - i);
+        thread::sleep(std::time::Duration::from_millis(1000));
+    }
+    clear().expect("TODO: panic message");
+    display_logo();
     spawn(|| {
-        //clear().expect("TODO: panic message");
-        for i in 1..10 {
-            println!("You have {} seconds left", 10 - i);
-            thread::sleep(std::time::Duration::from_millis(1000));
-        }
-        clear().expect("TODO: panic message");
-        display_logo();
-
-        spawn(|| {
-            let stream = stream_command("sudo cat /dev/input/mouse1");
-            let mut reader = BufReader::new(stream);
-            loop {
-                let mut buff: [u8; 1] = [0];
-                reader
-                    .read(&mut buff)
-                    .expect("I guess you don't have a mouse lol");
-                println!("bad no mouse");
-                insult(tx.to_owned());
-            }
-        });
-
-        let stream = stream_command("sudo cat /dev/input/by-path/platform-i8042-serio-0-event-kbd");
+        let stream = stream_command("sudo cat /dev/input/mouse1");
         let mut reader = BufReader::new(stream);
-        let valid = [30, 22, 31, 20, 23, 49];
-        let mut collected_keys: Vec<u8> = vec![];
-        let mut index = 0;
-        ctrlc::set_handler(move || {
-            println!("Nice try");
-        })
-        .expect("Unable to configure cancel manager");
         loop {
-            disable_echo();
-            let mut buff: [u8; 100] = [0; 100];
-            reader.read(&mut buff).expect("Unable to open keyboard");
-            if !collected_keys.contains(&buff[20]) && valid[index] == buff[20] {
-                collected_keys.push(buff[20]);
-                index += 1;
-                if index >= valid.len() {
-                    println!("Authenticated!");
-                    enable_echo();
-                    exit(0);
-                }
-            } else {
-                if !collected_keys.contains(&buff[20]) {
-                    print!("invalid key");
-
-                    insult(tx.clone());
-                }
-            }
+            let mut buff: [u8; 1] = [0];
+            reader
+                .read(&mut buff)
+                .expect("I guess you don't have a mouse lol");
+            println!("bad no mouse");
+            insult()
         }
     });
-    window_main(rx);
+    let stream = stream_command("sudo cat /dev/input/by-path/platform-i8042-serio-0-event-kbd");
+    let mut reader = BufReader::new(stream);
+    let valid = [30, 22, 31, 20, 23, 49];
+    let mut collected_keys: Vec<u8> = vec![];
+    let mut index = 0;
+    ctrlc::set_handler(move || {
+        println!("Nice try");
+    })
+    .expect("Unable to configure cancel manager");
+    loop {
+        disable_echo();
+        let mut buff: [u8; 100] = [0; 100];
+        reader.read(&mut buff).expect("Unable to open keyboard");
+        if !collected_keys.contains(&buff[20]) && valid[index] == buff[20] {
+            collected_keys.push(buff[20]);
+            index += 1;
+            if index >= valid.len() {
+                println!("Authenticated!");
+                enable_echo();
+                exit(0);
+            }
+        } else {
+            if !collected_keys.contains(&buff[20]) {
+                print!("invalid key");
+
+                insult()
+            }
+        }
+    }
 }
 pub fn run_command(command: &str) -> String {
     let mut new_command = Command::new("bash");
@@ -137,9 +128,10 @@ fn disable_input() {
 fn enable_input() {
     run_command("killall evtest");
 }
-fn insult(tx:Sender<String>) {
-    tx.send("TRIGGER".parse().unwrap()).expect("TODO: panic message");
-    loop {}
+fn insult() {
+    // Get an output stream handle to the default physical sound device.
+    // Note that the playback stops when the stream_handle is dropped.
+
     disable_input();
     clear().expect("TODO: panic message");
     let conf = Config {
