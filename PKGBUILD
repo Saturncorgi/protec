@@ -6,14 +6,11 @@ arch=(x86_64)
 depends=('cargo')
 license=(custom:for_good_eyes_only)
 prepare() {
-    cd "$srcdir"
     export RUSTUP_TOOLCHAIN=stable
     cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+    cargo build --release
 }
-build(){
-    cd "$srcdir"
-    cargo build --release --offline
-}
+
 package(){
     cd "$srcdir/.."
     install -Dm744 -t "$pkgdir"/usr/bin target/release/$pkgname
