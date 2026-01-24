@@ -2,17 +2,17 @@ mod terminos;
 
 use crate::terminos::{disable_echo, enable_echo};
 use clearscreen::clear;
+use include_dir::include_dir;
 use io_redirect::Redirectable;
 use regex::Regex;
 use std::env;
-use std::fs::File;
-use std::io::{stderr, BufReader, ErrorKind, Read};
+use std::io::{stderr, BufReader, Cursor, ErrorKind, Read};
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{exit, ChildStdout, Command, Stdio};
 use std::thread;
 use std::thread::spawn;
-use viuer::{print_from_file, Config};
+use viuer::{print, Config};
 
 fn main() {
     let my_user = run_command("whoami");
@@ -105,7 +105,9 @@ fn display_logo() {
             height: Some(25),
             ..Default::default()
         };
-        print_from_file("/etc/protec/fezprotec.png", &conf).expect("Image printing failed.");
+        let protec=include_bytes!("../assets/fezprotec.png");
+        let thing=image::load_from_memory(protec).unwrap();
+        print(&thing, &conf).expect("Can't display logo");
     });
 }
 fn disable_input() {
@@ -140,29 +142,29 @@ fn insult() {
         height: Some(25),
         ..Default::default()
     };
-    print_from_file("/etc/protec/fezaaa.jpg", &conf).expect("Image printing failed.");
+    let protec=include_bytes!("../assets/fezaaa.jpg");
+    let thing=image::load_from_memory(protec).unwrap();
+    print(&thing, &conf).expect("Can't display thing");
     let path = PathBuf::from("/dev/null");
     stderr().redirect(path.as_path()).unwrap();
     let stream_handle =
         rodio::OutputStreamBuilder::open_default_stream().expect("open default audio stream");
     enable_echo();
-    let what = BufReader::new(File::open("/etc/protec/what.wav").unwrap());
-    let noooooo = BufReader::new(File::open("/etc/protec/NOOOOOOO.wav").unwrap());
-    let pain = BufReader::new(File::open("/etc/protec/AAA.wav").unwrap());
-    let bad = BufReader::new(File::open("/etc/protec/yournotagoodperson.wav").unwrap());
-    // Note that the playback stops when the sink is dropped
-    //run_command("amixer sset 'Master' 100%");
-    let sink = rodio::play(&stream_handle.mixer(), what).unwrap();
-    sink.sleep_until_end();
-    let sink = rodio::play(&stream_handle.mixer(), noooooo).unwrap();
-    sink.sleep_until_end();
-    let sink = rodio::play(&stream_handle.mixer(), pain).unwrap();
+    let assets =include_dir!("assets");
+    let wav_files=["what.wav","NOOOOOOO.wav","AAA.wav"];
+    let sink = rodio::Sink::connect_new(&stream_handle.mixer());
+    for file in wav_files {
+        let cursor = Cursor::new(assets.get_file(file).unwrap().contents());
+        let source = rodio::Decoder::new(BufReader::new(cursor)).unwrap();
+        sink.append(source);
+    }
     sink.sleep_until_end();
     thread::sleep(std::time::Duration::from_millis(2000));
-    let sink = rodio::play(&stream_handle.mixer(), bad).unwrap();
-    sink.set_volume(1.5);
+    let cursor = Cursor::new(assets.get_file("yournotagoodperson.wav").unwrap().contents());
+    let source = rodio::Decoder::new(BufReader::new(cursor)).unwrap();
+    sink.append(source);
     sink.sleep_until_end();
     enable_input();
-    //run_command("systemctl suspend");
+    run_command("systemctl suspend");
     exit(1)
 }
