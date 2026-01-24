@@ -17,4 +17,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: sudo apt-get update;sudo apt-get install alsa-base ibasound2t64;cargo build --verbose
+      run: sudo apt-get update;sudo apt-get install alsa-base libasound2t64;cargo build --verbose
