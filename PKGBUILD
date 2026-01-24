@@ -3,7 +3,7 @@ pkgver=0.1.0
 pkgrel=1
 pkgdesc="protec"
 arch=(x86_64)
-depends=('cargo')
+depends=('cargo' 'libinput' 'evtest' 'alsa-lib')
 license=(custom:for_good_eyes_only)
 prepare() {
     export RUSTUP_TOOLCHAIN=stable
