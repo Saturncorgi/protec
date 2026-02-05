@@ -1,6 +1,6 @@
 # Maintainer: Lyra saturn@saturncorgi.com
 pkgname=protec
-pkgver=0.2.2
+pkgver=0.2.3
 pkgrel=1
 pkgdesc="Yell at anyone who dares touch your computer when you're not there"
 arch=(x86_64)

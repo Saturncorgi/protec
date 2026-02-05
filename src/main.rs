@@ -20,6 +20,28 @@ struct ProgConfig {
     password: Vec<u8>,
 }
 fn main() {
+    let cmdlineargs: Vec<String> = env::args().collect();
+    for arg in cmdlineargs.iter() {
+        if arg.contains("help") {
+            println!("
+            A program to keep your computer safe from your friends dastardly pranks via the following process\n
+                you run protec\n
+                you have 10 seconds to cease all mouse and keyboard movement\n
+                any further input to a mouse or keyboard after the grace period will result in:\n
+                    all user input being disabled\n
+                    GLaDOS yelling at the intruder\n
+                    An angry ferret picture\n
+                    your device put to sleep. upon waking back up input is returned (hopefully use at your own risk, it works fine for me lol)\n
+            'But Lyra' i hear you ask, what happens when i get back :( I'll get yelled at\n
+            Well my friends before your first usage of this program simply run protec init and you get to set a password using any key you have available\n
+            That means backspace is a valid part of your password\n
+            Please note that any repeated uses of the same key are ignored for purposes of lazyness\n
+            Simply enter this password after the grace period to end the protection\n
+            Disclaimer: this help section was written after midnight after a insane week, your mileage may vary
+            ");
+            exit(0)
+        }
+    }
     let my_user = run_command("/usr/bin/whoami");
     if my_user.trim() != "root" {
         println!(
@@ -34,24 +56,6 @@ fn main() {
     for arg in cmdlineargs.iter() {
         if arg.contains("init") {
             init();
-            exit(0)
-        }
-        if arg.contains("help"){
-            println!("A program to keep your computer safe from your friends dastardly pranks via the following process\n
-            you run protec\n
-            you have 10 seconds to cease all mouse and keyboard movement\n\
-            any further input to a mouse or keyboard after the grace period will result in:\n
-                all user input being disabled\n
-                GLaDOS yelling at the intruder\n
-                An angry ferret picture\n
-                your device put to sleep. upon waking back up input is returned (hopefully use at your own risk, it works fine for me lol)\n
-            'But Lyra' i hear you ask, what happens when i get back :( I'll get yelled at\n
-            Well my friends before your first usage of this program simply run protec init and you get to set a password using any key you have available\n
-            That means backspace is a valid part of your password\n
-            Please note that any repeated uses of the same key are ignored for purposes of lazyness\n
-            Simply enter this password after the grace period to end the protection\n
-            Disclaimer: this help section was written after midnight after a insane week, your mileage may vary
-            ");
             exit(0)
         }
     }
