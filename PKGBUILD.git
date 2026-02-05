@@ -11,7 +11,6 @@ git+https://github.com/Saturncorgi/protec
 )
 sha256sums=('SKIP')
 prepare() {
-    cat ../PKGBUILD |sed "s/cd protec//"|sed "s/protec-git/protec/"|sed "s/conflicts=(protec)/conflicts=(protec-git)/"|sed "s/source=(//"|sed -E "s/git\+.*\w//"|sed "s/) //" |sed -E "s/.*PKGBUILD.*//">PKGBUILD.local
     cd protec
     export RUSTUP_TOOLCHAIN=stable
     cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
