@@ -1,3 +1,4 @@
+updpkgsums
 makepkg --printsrcinfo > .SRCINFO
 git stage *
 git switch master
