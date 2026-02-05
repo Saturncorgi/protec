@@ -1,4 +1,4 @@
-pkgname=protec-git
+pkgname=protec
 pkgver=0.2.0
 pkgrel=1
 pkgdesc="Yell at anyone who dares touch your computer when you're not there"
