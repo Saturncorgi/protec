@@ -256,6 +256,7 @@ fn config_fail() {
         }
     }
     println!("Config file is invalid!!! run protec init");
+    exit(1)
 }
 fn get_keyboards() -> Vec<String> {
     let mut keyboards: Vec<String> = vec![];
