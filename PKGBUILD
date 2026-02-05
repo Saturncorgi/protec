@@ -1,3 +1,4 @@
+# Maintainer: Lyra saturn@saturncorgi.com
 pkgname=protec
 pkgver=0.2.1
 pkgrel=1
