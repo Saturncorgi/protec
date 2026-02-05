@@ -1,8 +1,8 @@
 name: Makepkg
 
 on:
-  push:
-    branches: [main]
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -14,6 +14,6 @@ jobs:
       - name: Validate package
         uses: heyhusen/archlinux-package-action@v3.0.0
         with:
-          flags: '-si --noconfirm -p PKGBUILD.local'
+          flags: '-si --noconfirm'
           namcap: false
           updpkgsums: true
