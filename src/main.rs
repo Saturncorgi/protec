@@ -249,10 +249,8 @@ fn verify_config(_config: &ProgConfig) -> bool {
 }
 fn config_fail() {
     let cmdlineargs: Vec<String> = env::args().collect();
-    let mut should_init = false;
     for arg in cmdlineargs.iter() {
         if arg.contains("init") {
-            should_init = true;
             init();
             exit(0)
         }
