@@ -1,7 +1,5 @@
 makepkg --printsrcinfo > .SRCINFO
 git stage *
-git commit
-git push
 git switch master
 git checkout main -- PKGBUILD .SRCINFO
 git stage PKGBUILD .SRCINFO
