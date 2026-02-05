@@ -11,7 +11,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: prepare
-        run: cp -f PKGBUILD.local PKGBUILD
+        run: cp -f PKGBUILD.local PKGBUILD;ls
       - name: Validate package
         uses: heyhusen/archlinux-package-action@v3.0.0
         with:
