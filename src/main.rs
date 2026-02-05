@@ -4,6 +4,7 @@ use crate::terminos::{disable_echo, enable_echo};
 use clearscreen::clear;
 use include_dir::include_dir;
 use io_redirect::Redirectable;
+use machineid_rs::{Encryption, HWIDComponent, IdBuilder};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{stderr, BufReader, Cursor, ErrorKind, Read, Write};
@@ -11,9 +12,9 @@ use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{exit, ChildStdout, Command, Stdio};
 use std::sync::mpsc::{channel, Receiver, Sender};
-use std::thread;
 use std::thread::spawn;
 use std::{env, fs};
+use std::thread;
 use viuer::{print, Config};
 #[derive(Serialize, Deserialize)]
 struct ProgConfig {
@@ -23,22 +24,21 @@ fn main() {
     let cmdlineargs: Vec<String> = env::args().collect();
     for arg in cmdlineargs.iter() {
         if arg.contains("help") {
-            println!("
-            A program to keep your computer safe from your friends dastardly pranks via the following process\n
-                you run protec\n
-                you have 10 seconds to cease all mouse and keyboard movement\n
-                any further input to a mouse or keyboard after the grace period will result in:\n
-                    all user input being disabled\n
-                    GLaDOS yelling at the intruder\n
-                    An angry ferret picture\n
-                    your device put to sleep. upon waking back up input is returned (hopefully use at your own risk, it works fine for me lol)\n
-            'But Lyra' i hear you ask, what happens when i get back :( I'll get yelled at\n
-            Well my friends before your first usage of this program simply run protec init and you get to set a password using any key you have available\n
-            That means backspace is a valid part of your password\n
-            Please note that any repeated uses of the same key are ignored for purposes of lazyness\n
-            Simply enter this password after the grace period to end the protection\n
-            Disclaimer: this help section was written after midnight after a insane week, your mileage may vary
-            ");
+            println!("          \
+            A program to keep your computer safe from your friends dastardly pranks via the following process
+                you run protec
+                you have 10 seconds to cease all mouse and keyboard movement
+                any further input to a mouse or keyboard after the grace period will result in:
+                    all user input being disabled
+                    GLaDOS yelling at the intruder
+                    An angry ferret picture
+                    your device put to sleep. upon waking back up input is returned (hopefully use at your own risk, it works fine for me lol)
+            'But Lyra' i hear you ask, what happens when i get back :( I'll get yelled at
+            Well my friends before your first usage of this program simply run protec init and you get to set a password using any key you have available
+            That means backspace is a valid part of your password
+            Please note that any repeated uses of the same key are ignored for purposes of lazyness
+            Simply enter this password after the grace period to end the protection
+            Disclaimer: this help section was written after midnight after a insane week, your mileage may vary");
             exit(0)
         }
     }
@@ -93,15 +93,26 @@ fn main() {
                         &*("/usr/bin/sudo /usr/bin/cat ".to_owned() + &*kbd_location),
                     );
                     let mut reader = BufReader::new(stream);
+                    let mut collected_keys_raw: Vec<u8> = vec![];
                     let mut collected_keys: Vec<u8> = vec![];
                     let mut index = 0;
+                    let mut counter =0;
                     loop {
                         disable_echo();
                         let mut buff: [u8; 100] = [0; 100];
                         reader.read(&mut buff).expect("Unable to open keyboard");
-                        if !collected_keys.contains(&buff[20]) && valid[index] == buff[20] {
-                            collected_keys.push(buff[20]);
+                        let mut builder = IdBuilder::new(Encryption::SHA256);
+                        builder.add_component(HWIDComponent::SystemID);
+                        let hwid = builder.build(&*run_command("hostname")).unwrap();
+                        if counter > hwid.as_bytes().len() {
+                            counter = 0
+                        }
+                        let key=buff[20] ^ hwid.as_bytes()[counter];
+                        if !collected_keys_raw.contains(&buff[20]) && valid[index] == key {
+                            collected_keys_raw.push(buff[20]);
+                            collected_keys.push(key);
                             index += 1;
+                            counter += 1;
                             if index >= valid.len() {
                                 clear().expect("TODO: panic message");
                                 thread::sleep(std::time::Duration::from_millis(10));
@@ -111,9 +122,9 @@ fn main() {
                                 exit(0);
                             }
                         } else {
-                            if !collected_keys.contains(&buff[20]) {
-                                print!("invalid key");
-
+                            if !collected_keys_raw.contains(&buff[20]) {
+                                enable_echo();
+                                counter = 0;
                                 insult()
                             }
                         }
@@ -254,9 +265,9 @@ fn init() {
         println!(
             "Please enter the password you want to use to disarm the system. \nPress ESCAPE to confirm, all other keypresses will be included in the passwod"
         );
-        conf.password = get_keys();
+        conf.password = get_password();
         println!("Type it again to verify");
-        let temp = get_keys();
+        let temp = get_password();
         if temp == conf.password {
             valid_passwd = true;
         } else {
@@ -265,6 +276,24 @@ fn init() {
     }
     let json = serde_json::to_string(&conf).expect("Can't serialize config");
     file.write(json.as_bytes()).expect("Can't write config");
+    run_command("chmod 600 /etc/protec/config");
+}
+fn get_password() -> Vec<u8> {
+    let raw_password = get_keys();
+    let mut encrypted_password: Vec<u8> = vec![];
+    let mut builder = IdBuilder::new(Encryption::SHA256);
+
+    builder.add_component(HWIDComponent::SystemID);
+    let hwid = builder.build(&*run_command("hostname")).unwrap();
+    let mut counter = 0;
+    for byte in &raw_password {
+        if counter > hwid.as_bytes().len() {
+            counter = 0
+        }
+        encrypted_password.push(*byte ^ hwid.as_bytes()[counter]);
+        counter += 1;
+    }
+    encrypted_password
 }
 fn verify_config(_config: &ProgConfig) -> bool {
     true
