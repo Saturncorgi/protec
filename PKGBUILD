@@ -7,7 +7,7 @@ depends=('cargo' 'libinput' 'evtest' 'alsa-lib')
 license=(custom:for_good_eyes_only)
 conflicts=(protec)
 source=(
-https://github.com/Saturncorgi/protec/archive/refs/tags/$pkgver.tar.gz
+${pkgname}-${pkgver}.tar.gz::https://github.com/Saturncorgi/protec/archive/refs/tags/$pkgver.tar.gz
 )
 sha256sums=('1665bee06b7affd0843f3ba3b93ae5a2c50ebd6f14731c26c3de8cd1d0795326')
 prepare() {
