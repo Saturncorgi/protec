@@ -8,8 +8,10 @@ clearscreen = "4.0.2"
 viuer = { version = "0.11.0", features = ["print-file"] }
 ctrlc = { version = "3.5.1",features = ["termination"] }
 termios = "0.3.3"
-regex = "1.12.2"
 io-redirect = "0.0.2"
 include_dir = "0.7.4"
 rodio = "0.21.1"
 image = "0.25.9"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+keyboard-codes = "0.3.0"

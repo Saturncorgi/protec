@@ -8,10 +8,12 @@ license=(custom:for_good_eyes_only)
 prepare() {
     export RUSTUP_TOOLCHAIN=stable
     cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
-    cargo build --release
 }
-
+build(){
+cargo build --release --offline
+}
 package(){
     cd "$srcdir/.."
-    install -Dm744 -t "$pkgdir"/usr/bin target/release/$pkgname
+    install -Dm711 -t "$pkgdir"/usr/bin target/release/$pkgname
+    install -Dm644 -t "$pkgdir"/usr/share/licenses/$pkgname $srcdir/../LICENSE.md
 }
