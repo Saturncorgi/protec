@@ -16,4 +16,3 @@ jobs:
         with:
           flags: '-si --noconfirm -p PKGBUILD.local'
           namcap: false
-          updpkgsums: true
