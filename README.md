@@ -1,4 +1,4 @@
-[![Rust](https://github.com/Saturncorgi/protec/actions/workflows/rust.yml/badge.svg)](https://github.com/Saturncorgi/protec/actions/workflows/rust.yml)<br>
+[![test-package](https://github.com/Saturncorgi/protec/actions/workflows/package.yml/badge.svg)](https://github.com/Saturncorgi/protec/actions/workflows/package.yml)<br>
 Yell at anyone who dares touch your computer when you're not there <br>
 for first use run protec init to set your password
 For Arch Linux makepkg -fis -p PKGBUILD.local to read from your local repo. <br>
